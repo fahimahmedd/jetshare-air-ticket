@@ -81,26 +81,41 @@ const menu = ref(false)
 // Guest data
 const addGuest = ref([
   {
-    title: 'Adults',
-    description: 'Age 13 or above',
+    title: 'Adult',
+    description: 'Ages 2+',
     value: 1,
   },
   {
-    title: 'Children',
+    title: 'Infants',
     description: 'Ages 2–12',
     value: 0,
   },
   {
-    title: 'Infants',
-    description: 'Under 2',
+    title: 'Pet (In Seat)',
+    description: 'An extra seat for your pet',
     value: 0,
   },
+  {
+    title: 'Pet (In Carrier)',
+    description: 'Pet & carrier (max size/weight: 20 in x 12 in x 9 in, <20 lbs) must go and fit under the seat.',
+    value: 0,
+  },
+  {
+    title: 'Service Animal*',
+    description: 'Service animal must fit within passenger foot space',
+    value: 0,
+  },
+
 ])
 
 // Total guest count
 const totalGuests = computed(() => {
   return addGuest.value.reduce((sum, item) => sum + item.value, 0)
 })
+
+
+const isRoundTrip = ref(false)
+
 </script>
 
 <template>
@@ -153,7 +168,7 @@ const totalGuests = computed(() => {
           <template #selection="data">
             <div class="transport-place-container">
               <div class="transport-place">
-                <div class="transport-title">From</div>
+                <div class="transport-title text-caption">From</div>
                 <div class="transport-content">
                   <div class="d-flex align-center justify-space-between">
                     <h2>{{ data.item?.raw?.city }}</h2>
@@ -217,7 +232,7 @@ const totalGuests = computed(() => {
           <template #selection="data">
             <div class="transport-place-container">
               <div class="transport-place">
-                <div class="transport-title">From</div>
+                <div class="transport-title text-caption">To</div>
                 <div class="transport-content">
                   <div class="d-flex align-center justify-space-between">
                     <h2>{{ data.item?.raw?.city }}</h2>
@@ -225,7 +240,7 @@ const totalGuests = computed(() => {
                       {{ data.item.raw.code }}
                     </div>
                   </div>
-                  <p>{{ data.item.raw.airport || "Select Your Origin" }}</p>
+                  <p>{{ data.item.raw.airport || "Select Your Destination" }}</p>
                 </div>
               </div>
             </div>
@@ -244,24 +259,24 @@ const totalGuests = computed(() => {
       <template v-slot:activator="{ props }">
         <div class="add-guest" v-bind="props">
           <div class="guest-container">
-            <div class="transport-title">Guests</div>
-            <div class="guest-content">
-              <h2>{{ totalGuests }}</h2>
+            <div class="guest-title text-grey-darken-1">Guests</div>
+            <div class="guest-content d-flex justify-space-between align-center">
+              <h2 class="text-h4 text-grey-lighten-2 font-weight-regular ">{{ totalGuests }}</h2>
               <span class="mdi mdi-chevron-down"></span>
             </div>
           </div>
-        </div>
+        </div>  
       </template>
-      <v-card color="black" class="guest-plate" width="380">
+      <v-card color="black" class="guest-plate" width="380" max-height="440" rounded="0">
         <div v-for="(item, index) in addGuest" :key="index" class="plate-item">
           <div class="d-flex justify-space-between align-center">
-            <h3 class="text-white">{{ item.title }}</h3>
+            <h3 class="text-h5 font-weight-regular text-white">{{ item.title }}</h3>
             <CounterPlate v-model:count="item.value" />
           </div>
-          <p class="text-grey">{{ item.description }}</p>
+          <p class="guest-text text-grey-darken-1">{{ item.description }}</p>
         </div>
 
-        <v-card-actions class="d-flex justify-end">
+        <v-card-actions class="guest-action d-flex justify-end">
           <v-btn variant="text" size="small" @click="menu = false">
             Done
           </v-btn>
@@ -269,18 +284,58 @@ const totalGuests = computed(() => {
       </v-card>
     </v-menu>
 
+
+    <!-- Round trip -->
+    <div class="d-flex align-center">
+    <!-- Vertical Switch -->
+    <v-switch
+      v-model="isRoundTrip"
+      class="custom-switch vertical-switch mr-3"
+      hide-details
+    >
+      <template #thumb>
+        <span class="switch-check mdi mdi-check"></span>
+      </template>
+    </v-switch>
+
+    <!-- Labels -->
+    <div>
+      <div
+        class="text-body-2 font-weight-medium cursor-pointer"
+        :class="!isRoundTrip ? 'text-white' : 'text-grey-darken-1'"
+        @click="isRoundTrip = false"
+      >
+        One Way
+      </div>
+      <div
+        class="text-body-2 font-weight-medium cursor-pointer"
+        :class="isRoundTrip ? 'text-white' : 'text-grey-darken-1'"
+        @click="isRoundTrip = true"
+      >
+        Round Trip
+      </div>
+    </div>
+  </div>
+
+
+
     <v-btn
       class="next-btn"
       icon="mdi-arrow-right"
       size="large"
       rounded="lg"
     ></v-btn>
+    <v-btn
+    density="comfortable"
+      icon="mdi-menu"
+      rounded="sm"
+    ></v-btn>
   </div>
 </template>
 
 <style scoped>
 .header {
-  height: 85px;
+  height: 90px;
   width: 95%;
   border: 1px solid #a6acb53f;
   background-color: #000000;
@@ -312,7 +367,7 @@ const totalGuests = computed(() => {
 }
 .transport-place-container {
   height: 100%;
-  width: 260px;
+  width: 220px;
 }
 .transport-place {
   width: 100%;
@@ -353,7 +408,9 @@ const totalGuests = computed(() => {
 ::v-deep(.mdi-menu-down) {
   color: #ffffff;
 }
-
+::v-deep(.v-field__input) {
+    padding-bottom: 0px !important;
+}
 .custom-select-item {
   border-top: 1px solid #c3c3c333;
   transition: background-color 0.3s ease;
@@ -377,11 +434,17 @@ const totalGuests = computed(() => {
   color: #7184a2;
   font-size: 22px;
 }
+.guest-text{
+  font-size: 12px;
+  max-width: 220px;
+}
 
 .select-item {
   padding: 10px 0;
 }
-
+.guest-title{
+  font-size: 14px;
+}
 .select-item h6 {
   font-size: 12px;
   color: #a4a3a3;
@@ -413,14 +476,18 @@ const totalGuests = computed(() => {
 
 .add-guest {
   cursor: pointer;
+  height: 100%;
+  border-left: 1px solid #a6acb541;
+  border-right: 1px solid #a6acb541;
 }
-
-.guest-container {
+.guest-container{
+  height: 100%;
+  width: 100px;
+  padding: 10px 10px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
 }
-
 .transport-title {
   font-size: 16px;
   font-weight: 500;
@@ -443,11 +510,35 @@ const totalGuests = computed(() => {
 }
 
 .guest-plate {
-  padding: 16px;
+  padding: 16px 16px 0 16px;
   background-color: #000;
+  margin-top: 1px;
+  position: relative;
 }
 
 .plate-item {
-  margin-bottom: 12px;
+  border-bottom: 1px solid #bbbfc429;
+  padding: 20px 0;
 }
+
+.vertical-switch {
+  transform: rotate(90deg);
+  transform-origin: center center;
+}
+.switch-check{
+  transform: rotate(-90deg);
+  transform-origin: center center;
+  color: white;
+}
+::v-deep(.v-switch__track) {
+    padding: 0 5px;
+    height: 25px;
+    opacity: 0.8;
+    min-width: 50px;
+}
+::v-deep(.v-switch__thumb){
+  background-color: #6d92cf;
+}
+
+
 </style>
